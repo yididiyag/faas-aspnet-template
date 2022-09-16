@@ -8,9 +8,12 @@ RUN apt update && apt install libxml2-utils -y
 # suppress data collection
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 
-# caches restore result by copying csproj file separately
+# caches restore result by copying csproj files separately
 WORKDIR /source/faas/function
-COPY function/function.csproj .
+COPY *.sln .
+COPY function/src/function.csproj ./src/
+COPY function/tests/integration/integration.csproj ./tests/integration/
+COPY function/tests/unit/unit.csproj ./tests/unit/
 
 # restore packages
 COPY add-nuget-config.sh /tmp/
@@ -22,6 +25,12 @@ RUN --mount=type=secret,id=nuget.config /tmp/add-nuget-config.sh nuget.config \
 WORKDIR /source/faas
 COPY . .
 
+# Run the unit tests
+RUN dotnet test function/tests/unit/unit.csproj -c Release
+
+# Run the integration tests
+RUN dotnet test function/tests/integration/integration.csproj -c Release
+
 # build and publish
 RUN dotnet publish \
     -c release \
@@ -29,7 +38,7 @@ RUN dotnet publish \
     --no-self-contained \
     -p:PublishReadyToRun=true \
     -o published \
-    function/function.csproj
+    function/src/function.csproj
 
 # runner
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim
