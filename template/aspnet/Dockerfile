@@ -26,10 +26,10 @@ WORKDIR /source/faas
 COPY . .
 
 # Run the unit tests
-RUN dotnet test function/tests/unit/unit.csproj -c Release
+RUN if [ "$ASPNETCORE_ENVIRONMENT" != "Development" ]; then dotnet test function/tests/unit/unit.csproj -c Release; fi
 
 # Run the integration tests
-RUN dotnet test function/tests/integration/integration.csproj -c Release
+RUN if [ "$ASPNETCORE_ENVIRONMENT" != "Development" ]; then dotnet test function/tests/integration/integration.csproj -c Release; fi
 
 # build and publish
 RUN dotnet publish \
