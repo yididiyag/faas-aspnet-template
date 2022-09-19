@@ -2,6 +2,7 @@
 FROM ghcr.io/openfaas/of-watchdog:0.9.6 as watchdog
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim as builder
+ARG ASPNETCORE_ENVIRONMENT="Production"
 
 RUN apt update && apt install libxml2-utils -y
 
@@ -26,10 +27,10 @@ WORKDIR /source/faas
 COPY . .
 
 # Run the unit tests
-RUN dotnet test function/tests/unit/unit.csproj -c Release --no-restore
+RUN if [ "$ASPNETCORE_ENVIRONMENT" != "Development" ]; then dotnet test function/tests/unit/unit.csproj -c release; fi
 
 # Run the integration tests
-RUN dotnet test function/tests/integration/integration.csproj -c Release --no-restore
+RUN if [ "$ASPNETCORE_ENVIRONMENT" != "Development" ]; then dotnet test function/tests/integration/integration.csproj -c release; fi
 
 # build and publish
 RUN dotnet publish \
