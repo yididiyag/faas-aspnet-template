@@ -11,10 +11,13 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 
 # caches restore result by copying csproj files separately
 WORKDIR /source/faas/function
-COPY *.sln .
+COPY function/*.sln .
 COPY function/src/function.csproj ./src/
 COPY function/tests/integration/integration.csproj ./tests/integration/
 COPY function/tests/unit/unit.csproj ./tests/unit/
+
+# list files in WORKDIR
+RUN ls
 
 # restore packages
 COPY add-nuget-config.sh /tmp/
