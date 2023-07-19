@@ -30,7 +30,7 @@ WORKDIR /source/faas
 COPY . .
 
 # Run the unit tests
-RUN if [ "$RUN_TESTS" != "false" ]; then dotnet test function/tests/unit/unit.csproj -c release; fi
+RUN dotnet test function/tests/unit/unit.csproj -c release
 
 # Run the integration tests
 RUN if [ "$RUN_TESTS" != "false" ]; then dotnet test function/tests/integration/integration.csproj -c release; fi
