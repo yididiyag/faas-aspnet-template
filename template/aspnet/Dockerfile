@@ -3,6 +3,8 @@ FROM ghcr.io/openfaas/of-watchdog:0.9.6 as watchdog
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim as builder
 ARG RUN_TESTS="true"
+ARG AZURE_DEVOPS_FEED_USERNAME
+ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
 
 RUN apt update && apt install libxml2-utils -y
 
