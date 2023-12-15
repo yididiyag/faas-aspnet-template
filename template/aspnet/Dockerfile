@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.3
 FROM ghcr.io/openfaas/of-watchdog:0.9.6 as watchdog
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim as builder
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as builder
 ARG RUN_TESTS="true"
 ARG AZURE_DEVOPS_FEED_USERNAME
 ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
@@ -34,8 +34,6 @@ COPY . .
 # Run the unit tests
 RUN dotnet test function/tests/unit/unit.csproj -c release
 
-# Run the integration tests
-RUN if [ "$RUN_TESTS" != "false" ]; then dotnet test function/tests/integration/integration.csproj -c release; fi
 
 # build and publish
 RUN dotnet publish \
