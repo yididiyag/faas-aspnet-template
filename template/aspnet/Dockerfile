@@ -8,6 +8,9 @@ ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
 
 RUN apt update && apt install libxml2-utils -y
 
+# --roll-forward 
+ENV DOTNET_ROLL_FORWARD LatestMajor
+
 # suppress data collection
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 
