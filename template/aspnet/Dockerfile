@@ -49,9 +49,13 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
 
 COPY --from=watchdog /fwatchdog /usr/bin/
 
-# Create a non-root user
-RUN addgroup --system app \
-    && adduser --system --ingroup app app
+# Check if the 'app' group exists, create it if it doesn't
+RUN if getent group app > /dev/null 2>&1; then \
+    echo "Group 'app' already exists"; \
+    else \
+    addgroup --system app; \
+    fi \
+    && adduser --system --ingroup app appuser
 
 WORKDIR /home/app/
 COPY --from=builder /source/faas/published .
