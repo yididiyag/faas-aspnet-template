@@ -8,9 +8,6 @@ ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
 
 RUN apt update && apt install libxml2-utils -y
 
-# --roll-forward 
-ENV DOTNET_ROLL_FORWARD LatestMajor
-
 # suppress data collection
 ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 
@@ -48,7 +45,7 @@ RUN dotnet publish \
     function/src/function.csproj
 
 # runner
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
 
 COPY --from=watchdog /fwatchdog /usr/bin/
 
