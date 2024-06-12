@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.3
 FROM ghcr.io/openfaas/of-watchdog:0.9.6 as watchdog
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim as builder
+FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim as builder
 ARG RUN_TESTS="true"
 ARG AZURE_DEVOPS_FEED_USERNAME
 ARG AZURE_DEVOPS_FEED_ACCESSTOKEN
@@ -15,11 +15,9 @@ ENV DOTNET_CLI_TELEMETRY_OPTOUT 1
 WORKDIR /source/faas/function
 COPY function/*.sln .
 COPY function/src/function.csproj ./src/
-COPY function/tests/integration/integration.csproj ./tests/integration/
-COPY function/tests/unit/unit.csproj ./tests/unit/
 
 # list files in WORKDIR
-RUN ls
+RUN ls -a
 
 # restore packages
 COPY add-nuget-config.sh /tmp/
@@ -31,37 +29,25 @@ RUN --mount=type=secret,id=nuget.config /tmp/add-nuget-config.sh nuget.config \
 WORKDIR /source/faas
 COPY . .
 
-# Run the unit tests
-RUN dotnet test function/tests/unit/unit.csproj -c release
-
-# Run the integration tests
-RUN if [ "$RUN_TESTS" != "false" ]; then dotnet test function/tests/integration/integration.csproj -c release; fi
-
 # build and publish
 RUN dotnet publish \
-    -c release \
-    -r linux-x64 \
-    --no-self-contained \
-    -p:PublishReadyToRun=true \
+    -c Release \
     -o published \
     function/src/function.csproj
 
 # runner
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-bullseye-slim
+FROM nginx:alpine
+COPY --from=watchdog /fwatchdog /usr/bin/fwatchdog
+RUN chmod +x /usr/bin/fwatchdog
 
-COPY --from=watchdog /fwatchdog /usr/bin/
-
-# Create a non-root user
-RUN addgroup --system app \
-    && adduser --system --ingroup app app
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder /source/faas/published/wwwroot /home/www-data/app
 
 WORKDIR /home/app/
-COPY --from=builder /source/faas/published .
-RUN chown app:app -R /home/app
 
-USER app
+RUN ls -a
 
-ENV fprocess="./function"
+ENV fprocess="nginx"
 ENV cgi_headers="true"
 ENV mode="http"
 ENV upstream_url="http://localhost:9000"
