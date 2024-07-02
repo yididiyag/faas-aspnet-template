@@ -18,8 +18,8 @@ COPY function/src/function.csproj ./src/
 COPY function/tests/integration/integration.csproj ./tests/integration/
 COPY function/tests/unit/unit.csproj ./tests/unit/
 
-# list files in WORKDIR
-RUN ls
+# list files in WORKDIR to ensure csproj files are copied
+RUN echo "Listing files after copying csproj files:" && ls -R /source/faas/function
 
 # restore packages
 COPY add-nuget-config.sh /tmp/
@@ -31,9 +31,14 @@ RUN --mount=type=secret,id=nuget.config /tmp/add-nuget-config.sh nuget.config \
 WORKDIR /source/faas
 COPY . .
 
+# list files to ensure all source files are copied
+RUN echo "Listing files after copying source files:" && ls -R /source/faas
+
 # Run the unit tests
 RUN dotnet test function/tests/unit/unit.csproj -c release
 
+# Run the integration tests
+RUN if [ "$RUN_TESTS" != "false" ]; then dotnet test function/tests/integration/integration.csproj -c release; fi
 
 # build and publish
 RUN dotnet publish \
@@ -43,6 +48,9 @@ RUN dotnet publish \
     -p:PublishReadyToRun=true \
     -o published \
     function/src/function.csproj
+
+# list files to ensure publish output is created
+RUN echo "Listing files after publish:" && ls -R /source/faas/published
 
 # runner
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim
@@ -60,6 +68,9 @@ RUN if getent group app > /dev/null 2>&1; then \
 WORKDIR /home/app/
 COPY --from=builder /source/faas/published .
 RUN chown app:app -R /home/app
+
+# list files in final image to ensure all necessary files are present
+RUN echo "Listing files in final image:" && ls -R /home/app
 
 USER app
 
