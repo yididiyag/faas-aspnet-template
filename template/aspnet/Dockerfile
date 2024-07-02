@@ -63,8 +63,7 @@ RUN if getent group app > /dev/null 2>&1; then \
     && adduser --system --ingroup app appuser
 
 WORKDIR /home/app/
-COPY --from=builder /source/faas/published .
-COPY --from=builder /source/faas/function/src/*.json . # Ensure the JSON files are copied
+COPY --from=builder /source/faas/published . 
 RUN chown app:app -R /home/app
 
 # list files in the app directory after copying 
