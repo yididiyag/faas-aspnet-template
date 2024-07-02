@@ -67,8 +67,7 @@ COPY --from=builder /source/faas/published .
 COPY --from=builder /source/faas/function/src/*.json . # Ensure the JSON files are copied
 RUN chown app:app -R /home/app
 
-# list files in the app directory after copying
-echo "yido testing..."
+# list files in the app directory after copying 
 RUN ls -R /home/app
 
 USER app
